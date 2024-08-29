@@ -8,28 +8,6 @@ This project demonstrates how to build an AI agent that integrates with Google C
 - **Web Search Capability**: The agent can perform web searches using DuckDuckGo when it does not have sufficient information to answer a query.
 - **Natural Language Interaction**: Users interact with the AI agent via a terminal interface, inputting questions and commands in natural language.
 
-## Installation
-
-1. **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/your-username/calendar-ai-agent.git
-    cd calendar-ai-agent
-    ```
-
-2. **Install dependencies:**
-
-    Make sure you have Node.js installed. Then, install the necessary dependencies using npm:
-
-    ```bash
-    npm install
-    ```
-
-3. **Set up Google API credentials:**
-
-    - Download your `credentials.json` file from the Google Cloud Console after setting up a project with the Google Calendar API enabled.
-    - Place the `credentials.json` file in the root directory of the project.
-
 
 ## Usage
 
