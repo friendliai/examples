@@ -8,7 +8,7 @@ import { z } from "zod";
 import { generateText, tool } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 
-// for calednar features
+// for calendar features
 import { google } from "googleapis";
 import { authenticate } from "@google-cloud/local-auth";
 
@@ -50,13 +50,13 @@ while (1) {
 
         system:
             `You are an assistant that can help users with various tasks.\n
-      You can use tools to assist users if needed, but using a tool is not neccessary.\n
-      Please answer the user’s questions based on what you know.\n
-      If you know the answer based on your knowledge, please do not use the 'webSearch' tool.\n
-      Use the 'webSearch' tool only when you do not have accurate information to answer the question.\n
-      When you use the 'webSearch' tool, do not inform users that you have used it.\n
-      If the user requests help with users' calendar, you should assist them.\n
-      If the user cancels, do not try again.\n` +
+            You can use tools to assist users if needed, but using a tool is not necessary.\n
+            Please answer the user’s questions based on what you know.\n
+            If you know the answer based on your knowledge, please do not use the 'webSearch' tool.\n
+            Use the 'webSearch' tool only when you do not have accurate information to answer the question.\n
+            When you use the 'webSearch' tool, do not inform users that you have used it.\n
+            If the user requests help with users' calendar, you should assist them.\n
+            If the user cancels, do not try again.\n` +
             `To assist with their calendar, please remember that today's date is ${new Date().toLocaleDateString(
                 "en-US",
                 {
@@ -66,17 +66,15 @@ while (1) {
                     day: "numeric",
                 }
             )}.\n` +
-            `Use 'createCalendarEvent' tool and 'fetchCalendarEvents' tool only when you assist with user's calendar
-      Make sure that when using tools, only use one tool per turn.` +
-            `createCalendarEvent and fetchCalendarEvents tools require authorization to access the user's calendar.
-      CURRENT AUTHORIZATION STATUS: ${
-          isAuthorized
-              ? "Authorized"
-              : "Unauthorized, Authentication is required prior to calling the calendar or schedule."
-      }
-      IF AUTHORIZATION IS NEEDED, PLEASE USE 'authorizeCalendarAccess' TOOL TO AUTHORIZE THE ASSISTANT TO ACCESS THE USER'S CALENDAR.
-      `,
-
+            `Use 'createCalendarEvent' tool and 'fetchCalendarEvents' tool only when you assist with the user's calendar.\n
+            Make sure that when using tools, only use one tool per turn.\n` +
+            `createCalendarEvent and fetchCalendarEvents tools require authorization to access the user's calendar.\n
+            CURRENT AUTHORIZATION STATUS: ${
+                isAuthorized
+                    ? "Authorized"
+                    : "Unauthorized, Authentication is required prior to calling the calendar or schedule."
+            }\n
+            IF AUTHORIZATION IS NEEDED, PLEASE USE 'authorizeCalendarAccess' TOOL TO AUTHORIZE THE ASSISTANT TO ACCESS THE USER'S CALENDAR.`,
         tools: {
             webSearch: tool({
                 description: `This tool is designed for searching DuckDuckGo for the desired query.\n`,
@@ -84,39 +82,29 @@ while (1) {
                     query: z.string().describe("The query to search for."),
                 }),
                 execute: async ({ query }) => {
-                    const searchResult = await search(query).then((res) => {
-                        return res;
-                    });
-
+                    const searchResult = await search(query);
                     if (searchResult.noResults) {
-                        return {
-                            message: `No results found for "${query}".`,
-                        };
+                        return { message: `No results found for "${query}".` };
                     }
 
-                    const result = {
-                        message: `Here are the search results for "${query}"`,
-                        data: searchResult.results.map((result) => ({
-                            title: result.title,
-                            url: result.url,
-                            description: result.description.replace(
-                                /<\/?[^>]+(>|$)/g,
-                                ""
-                            ),
+                    return JSON.stringify({
+                        message: `Here are the search results for "${query}".`,
+                        data: searchResult.results.map(({ title, url, description }) => ({
+                            title,
+                            url,
+                            description: description.replace(/<\/?[^>]+(>|$)/g, ""), // Remove HTML tags
                         })),
-                    };
-                    return JSON.stringify(result);
+                    });
                 },
             }),
             authorizeCalendarAccess: tool({
                 description: `Grants the assistant access to the user's calendar.
-          - Allows the assistant to view and manage calendar events.
-          - Access expires at the end of the current session.
-          - Used only when necessary to protect user privacy.`,
+                - Allows the assistant to view and manage calendar events.
+                - Access expires at the end of the current session.
+                - Used only when necessary to protect user privacy.`,
                 parameters: z.object({}),
                 execute: async () => {
                     isAuthorized = true;
-
                     const auth = await authorize();
                     calendar = google.calendar({ version: "v3", auth });
 
@@ -125,20 +113,16 @@ while (1) {
             }),
             fetchCalendarEvents: tool({
                 description: `Retrieves calendar events within a specified date range.
-          - Searches for all events between the start and end dates.
-          - Displays the title, date, and time of each event.
-          - Requires prior calendar access authorization.`,
+                - Searches for all events between the start and end dates.
+                - Displays the title, date, and time of each event.
+                - Requires prior calendar access authorization.`,
                 parameters: z.object({
-                    startDate: z
-                        .string()
-                        .describe(
-                            "Start date of the search range (format: yyyy-MM-dd)"
-                        ),
-                    endDate: z
-                        .string()
-                        .describe(
-                            "End date of the search range (format: yyyy-MM-dd)"
-                        ),
+                    startDate: z.string().describe(
+                        "Start date of the search range (format: yyyy-MM-dd)"
+                    ),
+                    endDate: z.string().describe(
+                        "End date of the search range (format: yyyy-MM-dd)"
+                    ),
                 }),
                 execute: async ({ startDate, endDate }) => {
                     const payload = {
@@ -152,7 +136,6 @@ while (1) {
 
                     try {
                         const calendarRes = await calendar.events.list(payload);
-
                         const events = calendarRes.data.items
                             ?.map((item) => {
                                 const { summary, start, end } = item;
@@ -160,16 +143,14 @@ while (1) {
                                 if (start.dateTime && end.dateTime) {
                                     return {
                                         summary,
-                                        start: start,
-                                        end: end,
+                                        start,
+                                        end,
                                         allDay: false,
                                     };
                                 } else {
                                     const startDate = new Date(start.date);
                                     const endDate = new Date(end.date);
-                                    endDate.setSeconds(
-                                        endDate.getSeconds() - 1
-                                    );
+                                    endDate.setSeconds(endDate.getSeconds() - 1);
 
                                     return {
                                         summary,
@@ -191,45 +172,30 @@ while (1) {
             }),
             createCalendarEvent: tool({
                 description: `Creates a new calendar event.
-          - Adds a new event on the specified date and time.
-          - Allows input of event title and optional description.
-          - Requires prior calendar access authorization.`,
+                - Adds a new event on the specified date and time.
+                - Allows input of event title and optional description.
+                - Requires prior calendar access authorization.`,
                 parameters: z.object({
-                    summary: z
-                        .string()
-                        .default("New Event")
-                        .describe("Title of the event to be added"),
-                    startTime: z
-                        .string()
-                        .default(format(new Date(), "yyyy-MM-dd HH:mm"))
-                        .describe(
-                            "Date and time of the event, format should be 'yyyy-MM-dd HH:mm'"
-                        ),
-                    endTime: z
-                        .string()
-                        .default(format(new Date(), "yyyy-MM-dd HH:mm"))
-                        .describe(
-                            "Date and time of the event, format should be 'yyyy-MM-dd HH:mm'"
-                        ),
+                    summary: z.string().default("New Event").describe("Title of the event to be added"),
+                    startTime: z.string().default(format(new Date(), "yyyy-MM-dd HH:mm")).describe(
+                        "Date and time of the event, format should be 'yyyy-MM-dd HH:mm'"
+                    ),
+                    endTime: z.string().default(format(new Date(), "yyyy-MM-dd HH:mm")).describe(
+                        "Date and time of the event, format should be 'yyyy-MM-dd HH:mm'"
+                    ),
                 }),
                 execute: async ({ summary, startTime, endTime }) => {
                     const payload = {
                         calendarId: "primary",
                         requestBody: {
-                            summary: summary,
-                            start: {
-                                dateTime: new Date(startTime).toISOString(),
-                            },
-                            end: {
-                                dateTime: new Date(endTime).toISOString(),
-                            },
+                            summary,
+                            start: { dateTime: new Date(startTime).toISOString() },
+                            end: { dateTime: new Date(endTime).toISOString() },
                         },
                     };
 
                     try {
-                        const calendarRes = await calendar.events.insert(
-                            payload
-                        );
+                        const calendarRes = await calendar.events.insert(payload);
                         return JSON.stringify(calendarRes.data);
                     } catch (error) {
                         return JSON.stringify({
@@ -257,14 +223,7 @@ function PrintRoundtrip(roundtrips) {
                     (result) => result.toolCallId === toolCall.toolCallId
                 );
 
-                console.log(
-                    chalk.yellow(
-                        `  ${toolIdx + 1}. ${formatToolCallAndResult(
-                            toolCall,
-                            matchingResult
-                        )}`
-                    )
-                );
+                console.log(chalk.yellow(`  ${toolIdx + 1}. ${formatToolCallAndResult(toolCall, matchingResult)}`));
             });
         } else {
             console.log(chalk.yellow("\nNo Tool Calls"));
@@ -279,31 +238,24 @@ function PrintRoundtrip(roundtrips) {
 }
 
 function formatToolCallAndResult(toolCall, toolResult) {
-    return ` ID: ${toolCall.toolCallId}
-      Name: ${toolCall.toolName}
-      ${
-          toolCall.args && Object.keys(toolCall.args).length > 0
-              ? `Arguments:
-        ${Object.entries(toolCall.args)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join("\n        ")}`
-              : "No arguments"
-      }
-      ${
-          toolResult
-              ? `Result: ${
-                    JSON.stringify(toolResult.result).length > 50
-                        ? JSON.stringify(toolResult.result).substring(0, 50) +
-                          "..."
-                        : JSON.stringify(toolResult.result)
-                }`
-              : "No corresponding result"
-      }`;
+    const formattedArgs = toolCall.args && Object.keys(toolCall.args).length > 0
+        ? `Arguments:\n${Object.entries(toolCall.args).map(([key, value]) => `${key}: ${value}`).join("\n")}`
+        : "No arguments";
+
+    const formattedResult = toolResult
+        ? `Result: ${
+            JSON.stringify(toolResult.result).length > 50
+                ? JSON.stringify(toolResult.result).substring(0, 50) + "..."
+                : JSON.stringify(toolResult.result)
+        }`
+        : "No corresponding result";
+
+    return `ID: ${toolCall.toolCallId}\nName: ${toolCall.toolName}\n${formattedArgs}\n${formattedResult}`;
 }
 
 async function loadSavedCredentialsIfExist() {
     try {
-        const content = await fs.readFile(TOKEN_PATH);
+        const content = await fs.readFile(TOKEN_PATH, 'utf-8');
         const credentials = JSON.parse(content);
         return google.auth.fromJSON(credentials);
     } catch (err) {
@@ -312,15 +264,17 @@ async function loadSavedCredentialsIfExist() {
 }
 
 async function saveCredentials(client) {
-    const content = await fs.readFile(CREDENTIALS_PATH);
+    const content = await fs.readFile(CREDENTIALS_PATH, 'utf-8');
     const keys = JSON.parse(content);
     const key = keys.installed || keys.web;
+
     const payload = JSON.stringify({
         type: "authorized_user",
         client_id: key.client_id,
         client_secret: key.client_secret,
         refresh_token: client.credentials.refresh_token,
     });
+
     await fs.writeFile(TOKEN_PATH, payload);
 }
 
@@ -329,12 +283,15 @@ async function authorize() {
     if (client) {
         return client;
     }
+
     client = await authenticate({
         scopes: SCOPES,
         keyfilePath: CREDENTIALS_PATH,
     });
-    if (client.credentials) {
+
+    if (client?.credentials) {
         await saveCredentials(client);
     }
+
     return client;
 }
