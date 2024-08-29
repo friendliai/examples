@@ -33,19 +33,11 @@ This project demonstrates how to build an AI agent that integrates with Google C
 
 ## Usage
 
-1. **Run the AI Agent:**
+**Interacting with the AI Agent:**
 
-    To start the AI agent, use the following command:
-
-    ```bash
-    node index.js
-    ```
-
-2. **Interacting with the AI Agent:**
-
-    - The AI agent will prompt you for input in the terminal.
-    - You can ask the agent to create a calendar event, fetch events, or perform a web search.
-    - The agent will automatically handle Google Calendar authentication when necessary.
+- The AI agent will prompt you for input in the terminal.
+- You can ask the agent to create a calendar event, fetch events, or perform a web search.
+- The agent will automatically handle Google Calendar authentication when necessary.
 
 ## Project Structure
 
