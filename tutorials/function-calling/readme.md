@@ -18,7 +18,7 @@ This notebook contains step-by-step setup and usage guidance.
 
 Or, you can use Colab to get started quickly.
 
-<a target="_blank" href="https://colab.research.google.com/github/friendliai/internal-tutorial/blob/main/function-calling/calendar-function-calling.ipynb">
+<a target="_blank" href="https://colab.research.google.com/github/friendliai/examples/blob/main/tutorials/function-calling/calendar-function-calling.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
