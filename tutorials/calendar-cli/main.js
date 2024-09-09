@@ -25,7 +25,7 @@ const terminal = readline.createInterface({
 });
 
 const friendliai = createOpenAI({
-    apiKey: process.env.FRIENDLI_API_KEY,
+    apiKey: process.env.FRIENDLI_TOKEN,
     baseURL: "https://inference.friendli.ai/v1",
 });
 
@@ -89,11 +89,16 @@ while (1) {
 
                     return JSON.stringify({
                         message: `Here are the search results for "${query}".`,
-                        data: searchResult.results.map(({ title, url, description }) => ({
-                            title,
-                            url,
-                            description: description.replace(/<\/?[^>]+(>|$)/g, ""), // Remove HTML tags
-                        })),
+                        data: searchResult.results.map(
+                            ({ title, url, description }) => ({
+                                title,
+                                url,
+                                description: description.replace(
+                                    /<\/?[^>]+(>|$)/g,
+                                    ""
+                                ), // Remove HTML tags
+                            })
+                        ),
                     });
                 },
             }),
@@ -117,12 +122,16 @@ while (1) {
                 - Displays the title, date, and time of each event.
                 - Requires prior calendar access authorization.`,
                 parameters: z.object({
-                    startDate: z.string().describe(
-                        "Start date of the search range (format: yyyy-MM-dd)"
-                    ),
-                    endDate: z.string().describe(
-                        "End date of the search range (format: yyyy-MM-dd)"
-                    ),
+                    startDate: z
+                        .string()
+                        .describe(
+                            "Start date of the search range (format: yyyy-MM-dd)"
+                        ),
+                    endDate: z
+                        .string()
+                        .describe(
+                            "End date of the search range (format: yyyy-MM-dd)"
+                        ),
                 }),
                 execute: async ({ startDate, endDate }) => {
                     const payload = {
@@ -150,7 +159,9 @@ while (1) {
                                 } else {
                                     const startDate = new Date(start.date);
                                     const endDate = new Date(end.date);
-                                    endDate.setSeconds(endDate.getSeconds() - 1);
+                                    endDate.setSeconds(
+                                        endDate.getSeconds() - 1
+                                    );
 
                                     return {
                                         summary,
@@ -176,26 +187,39 @@ while (1) {
                 - Allows input of event title and optional description.
                 - Requires prior calendar access authorization.`,
                 parameters: z.object({
-                    summary: z.string().default("New Event").describe("Title of the event to be added"),
-                    startTime: z.string().default(format(new Date(), "yyyy-MM-dd HH:mm")).describe(
-                        "Date and time of the event, format should be 'yyyy-MM-dd HH:mm'"
-                    ),
-                    endTime: z.string().default(format(new Date(), "yyyy-MM-dd HH:mm")).describe(
-                        "Date and time of the event, format should be 'yyyy-MM-dd HH:mm'"
-                    ),
+                    summary: z
+                        .string()
+                        .default("New Event")
+                        .describe("Title of the event to be added"),
+                    startTime: z
+                        .string()
+                        .default(format(new Date(), "yyyy-MM-dd HH:mm"))
+                        .describe(
+                            "Date and time of the event, format should be 'yyyy-MM-dd HH:mm'"
+                        ),
+                    endTime: z
+                        .string()
+                        .default(format(new Date(), "yyyy-MM-dd HH:mm"))
+                        .describe(
+                            "Date and time of the event, format should be 'yyyy-MM-dd HH:mm'"
+                        ),
                 }),
                 execute: async ({ summary, startTime, endTime }) => {
                     const payload = {
                         calendarId: "primary",
                         requestBody: {
                             summary,
-                            start: { dateTime: new Date(startTime).toISOString() },
+                            start: {
+                                dateTime: new Date(startTime).toISOString(),
+                            },
                             end: { dateTime: new Date(endTime).toISOString() },
                         },
                     };
 
                     try {
-                        const calendarRes = await calendar.events.insert(payload);
+                        const calendarRes = await calendar.events.insert(
+                            payload
+                        );
                         return JSON.stringify(calendarRes.data);
                     } catch (error) {
                         return JSON.stringify({
@@ -223,7 +247,14 @@ function PrintRoundtrip(roundtrips) {
                     (result) => result.toolCallId === toolCall.toolCallId
                 );
 
-                console.log(chalk.yellow(`  ${toolIdx + 1}. ${formatToolCallAndResult(toolCall, matchingResult)}`));
+                console.log(
+                    chalk.yellow(
+                        `  ${toolIdx + 1}. ${formatToolCallAndResult(
+                            toolCall,
+                            matchingResult
+                        )}`
+                    )
+                );
             });
         } else {
             console.log(chalk.yellow("\nNo Tool Calls"));
@@ -238,16 +269,19 @@ function PrintRoundtrip(roundtrips) {
 }
 
 function formatToolCallAndResult(toolCall, toolResult) {
-    const formattedArgs = toolCall.args && Object.keys(toolCall.args).length > 0
-        ? `Arguments:\n${Object.entries(toolCall.args).map(([key, value]) => `${key}: ${value}`).join("\n")}`
-        : "No arguments";
+    const formattedArgs =
+        toolCall.args && Object.keys(toolCall.args).length > 0
+            ? `Arguments:\n${Object.entries(toolCall.args)
+                  .map(([key, value]) => `${key}: ${value}`)
+                  .join("\n")}`
+            : "No arguments";
 
     const formattedResult = toolResult
         ? `Result: ${
-            JSON.stringify(toolResult.result).length > 50
-                ? JSON.stringify(toolResult.result).substring(0, 50) + "..."
-                : JSON.stringify(toolResult.result)
-        }`
+              JSON.stringify(toolResult.result).length > 50
+                  ? JSON.stringify(toolResult.result).substring(0, 50) + "..."
+                  : JSON.stringify(toolResult.result)
+          }`
         : "No corresponding result";
 
     return `ID: ${toolCall.toolCallId}\nName: ${toolCall.toolName}\n${formattedArgs}\n${formattedResult}`;
@@ -255,7 +289,7 @@ function formatToolCallAndResult(toolCall, toolResult) {
 
 async function loadSavedCredentialsIfExist() {
     try {
-        const content = await fs.readFile(TOKEN_PATH, 'utf-8');
+        const content = await fs.readFile(TOKEN_PATH, "utf-8");
         const credentials = JSON.parse(content);
         return google.auth.fromJSON(credentials);
     } catch (err) {
@@ -264,7 +298,7 @@ async function loadSavedCredentialsIfExist() {
 }
 
 async function saveCredentials(client) {
-    const content = await fs.readFile(CREDENTIALS_PATH, 'utf-8');
+    const content = await fs.readFile(CREDENTIALS_PATH, "utf-8");
     const keys = JSON.parse(content);
     const key = keys.installed || keys.web;
 
