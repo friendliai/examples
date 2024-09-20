@@ -1,0 +1,23 @@
+{
+  "name": "calednar-cli",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ai-sdk/openai": "^0.0.54",
+    "@google-cloud/local-auth": "^3.0.1",
+    "ai": "^3.3.20",
+    "chalk": "^5.3.0",
+    "date-fns": "^3.6.0",
+    "duck-duck-scrape": "^2.2.5",
+    "googleapis": "^143.0.0",
+    "zod": "^3.23.8"
+  }
+}

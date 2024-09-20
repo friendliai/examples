@@ -1,0 +1,7 @@
+duckduckgo_search
+friendli-client
+function_schema
+gcsa
+langchain_community
+packaging
+typer
