@@ -1,0 +1,39 @@
+apiVersion: friendli.ai/v1alpha1
+kind: FriendliDeployment
+metadata:
+  namespace: default
+  name: friendlideployment-sample
+spec:
+  engine:
+    image: 709825985650.dkr.ecr.us-east-1.amazonaws.com/friendliai/orca:v1.7.16
+  model:
+    huggingFace:
+      #
+      # Llama 3.1 is a gated model.
+      # Approval for your HuggingFace account is needed and you should provide
+      # HuggingFace API key.  See ./secret.yaml and ./friendli-config.yaml for the details.
+      #
+      repository: meta-llama/Llama-3.1-8B-Instruct
+  resources:
+    #
+    # Replace with appropriate NodeSelector for your environment.
+    #
+    nodeSelector:
+      gpu-type: a100-80g
+
+    #
+    # When designating resource limits and requests:
+    #
+    #   - You should consider whether your EKS nodes have ephemeral storage or not.
+    #   - Memory size should be larger than the size of your LLM model of choice.
+    #
+    requests:
+      cpu: "12"
+      ephemeral-storage: 100Gi
+      memory: 40Gi
+      nvidia.com/gpu: "1"
+    limits:
+      cpu: "12"
+      ephemeral-storage: 100Gi
+      memory: 40Gi
+      nvidia.com/gpu: "1"
