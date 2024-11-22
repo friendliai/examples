@@ -1,0 +1,16 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "license-manager:CheckoutLicense",
+                "license-manager:ExtendLicenseConsumption",
+                "license-manager:ListReceivedLicenses",
+                "license-manager:CheckInLicense",
+                "license-manager:GetLicense"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

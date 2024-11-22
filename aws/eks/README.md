@@ -13,6 +13,8 @@ This document demonstrates how to deploy the LLM model on Amazon EKS. The [yaml 
   - You can check the version of the current installation with `aws --version`
 - [AWS eksctl tool](https://docs.aws.amazon.com/en_us/eks/latest/userguide/getting-started-eksctl.html) version 0.194.0 or later.
   - You can check the version of the current installation with `eksctl version`
+- [Helm](https://helm.sh) version 3.8.2 or later.
+  - You can check the version of the current installation with `helm version`
 
 ### Subscribe to the Friendli Container product
 
@@ -25,12 +27,13 @@ To subscribe to Friendli Container:
 
 ### Configure the Cluster
 
-#### Install the CRDs
+#### Install the Helm Chart
 
-Using the kubectl tool, you can install the CRDs from the file in the [yaml directory](https://github.com/friendliai/examples/tree/main/aws/eks/yaml).
+Execute the following command to install the Helm chart.
 
-```sh
-kubectl apply -f 0-crd.yaml
+```
+export HELM_EXPERIMENTAL_OCI=1
+helm install --create-namespace --namespace friendli-container-system friendli-container oci://public.ecr.aws/g7w8c3g7/friendliai/friendli-container --version 0.1.1
 ```
 
 #### Configure the Service Account
@@ -72,7 +75,7 @@ Using the eksctl tool:
 
 ```sh
 eksctl create iamserviceaccount --namespace [NAMESPACE] --name [SERVICE_ACCOUNT_NAME] \
-  --cluster [EKS_CLUSTER_NAME] --role-name [ROLE_NAME] \
+  --region [EKS_REGION] --cluster [EKS_CLUSTER_NAME] --role-name [ROLE_NAME] \
   --attach-policy-arn arn:aws:iam::[AWS_ACCOUNT_ID]:policy/[POLICY_NAME] --approve
 ```
 
@@ -82,6 +85,7 @@ where
   (e.g. default)
 - `[SERVICE_ACCOUNT_NAME]` is the name of the newly created Kubernetes ServiceAccount.
   (e.g. friendli-container-service-account)
+- `[EKS_REGION]` is the AWS region your EKS cluster belongs to.
 - `[EKS_CLUSTER_NAME]` is the name of the EKS cluster.
 - `[ROLE_NAME]` is the name of the IAM role to be created.
 - `[AWS_ACCOUNT_ID]` is the numeric ID of your AWS account.
@@ -185,7 +189,7 @@ spec:
 where
 
 - `[ENGINE_IMAGE]` is the container image in AWS ECR, for your engine version of choice.
-  (e.g. `709825985650.dkr.ecr.us-east-1.amazonaws.com/friendliai/orca:v1.7.16`)
+  (e.g. `709825985650.dkr.ecr.us-east-1.amazonaws.com/friendliai/friendli-container:v1.7.16-eks`)
 - `[REPO_NAME]` is the HuggingFace repository name.
   (e.g. `meta-llama/Llama-3.1-8B-Instruct`)
 
@@ -273,10 +277,10 @@ Now you can request an inference from your Python script:
 
 ```python
 import requests
-SERVER = "localhost:6000/v1/chat/completions"
+SERVER = "http://localhost:6000/v1/chat/completions"
 
 response = requests.post(SERVER, json=input_payload)
-print(response)
+print(response.json())
 ```
 
 [More infromantion about response format](https://friendli.ai/docs/openapi/dedicated/chat-completions)
