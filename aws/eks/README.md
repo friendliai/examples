@@ -1,6 +1,6 @@
-## Deploy Friendli Container with EKS-addon from AWS Marketplace
+## Deploy Friendli Container from AWS Marketplace
 
-**Friendli Container** is a EKS addon package of the [Friendli Container](https://friendli.ai/products/container).
+**Friendli Container** is a AWS Marketplace product of the [Friendli Container](https://friendli.ai/products/container).
 
 This document demonstrates how to deploy the LLM model on Amazon EKS. The [yaml directory](https://github.com/friendliai/examples/tree/main/aws/eks/yaml) contains example Kubernetes manifests.
 
@@ -8,7 +8,7 @@ This document demonstrates how to deploy the LLM model on Amazon EKS. The [yaml 
 
 - You should have administrative privileges with a working AWS EKS cluster.
   - The EKS cluster should have node group with GPU-enabled instances.
-  - Currently, the EKS add-on package for Friendli Container only supports A100, H100, A10G, and L4 GPUs.
+  - Currently, Friendli Container for AWS Marketplace only supports A100, H100, A10G, and L4 GPUs.
 - [AWS Command Line Interface (AWS CLI)](https://docs.aws.amazon.com/en_us/cli/latest/userguide/getting-started-install.html) version 2.12.3 or later.
   - You can check the version of the current installation with `aws --version`
 - [AWS eksctl tool](https://docs.aws.amazon.com/en_us/eks/latest/userguide/getting-started-eksctl.html) version 0.194.0 or later.
