@@ -20,7 +20,7 @@ This document demonstrates how to deploy the LLM model on Amazon EKS. The [yaml 
 
 To subscribe to Friendli Container:
 
-1. Open the marketplace listing page: [Friendli Container(TODO: Update URL)](https://aws.amazon.com/marketplace)
+1. Open the marketplace listing page: [Friendli Container](https://aws.amazon.com/marketplace/pp/prodview-t553kwpgovrki?sr=0-3&ref_=beagle&applicationId=AWSMPContessa)
 2. On the AWS Marketplace listing, click on the **View purchase options** button.
 3. On the **Create an agreement for this software** page, review and click on **"Add a purchase order"** if you and your organization agrees with the EULA, pricing, and the support terms.
 4. Once you click on the **Continue to configuration** button and choose your **region**, you will see a **Product ARN** displayed. This is the container and helm ARN that you need to specify while creating Friendli Container on EKS. Copy the ARN corresponding to your region.
