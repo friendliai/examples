@@ -1,8 +1,24 @@
 ##
 
-<img src="https://friendli.ai/logo.svg" alt="friendliai" align="right" width="120" />
+<img src="https://friendli.ai/icon.svg" alt="friendliai" align="right" width="120" />
 
 # Function Calling Tutorial with Friendli Suite
+
+This repo contains tutorial notebook files for a feature called tool call or function calling.
+
+---
+
+## Basic Function Calling Example
+
+This is a notebook project created to explain [function calling in Friendli Docs](https://friendli.ai/docs/guides/serverless_endpoints/function-calling). It shows the basic operation of the simplest function calling.
+
+<a target="_blank" href="https://colab.research.google.com/github/friendliai/examples/blob/main/tutorials/function-calling/basic-function-calling.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+
+---
+
+## 🗓️ Calendar Function Calling Tutorial
 
 This project implements Friendli Suite function calling integrated with Google Calendar and web search functionality.
 
