@@ -113,11 +113,11 @@ spec:
 
     numGPUs: 1
     requests:
-      cpu: "7"
+      cpu: "6"
       ephemeral-storage: 30Gi
       memory: 25Gi
     limits:
-      cpu: "7"
+      cpu: "6"
       ephemeral-storage: 30Gi
       memory: 25Gi
   deploymentStrategy:
@@ -145,12 +145,12 @@ You can modify this YAML file for your use case.
     nodeSelector:
       eks.amazonaws.com/nodegroup: gpu-l4
     requests:
-      cpu: "7"
+      cpu: "6"
       ephemeral-storage: 30Gi
       memory: 25Gi
       nvidia.com/gpu: "1"
     limits:
-      cpu: "7"
+      cpu: "6"
       ephemeral-storage: 30Gi
       memory: 25Gi
       nvidia.com/gpu: "1"
