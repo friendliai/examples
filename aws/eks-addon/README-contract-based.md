@@ -1,11 +1,11 @@
 # Deploy Friendli Container as AWS EKS Add-on
 
-[**Friendli Container**](https://aws.amazon.com/marketplace/pp/prodview-ubylhkhrotpli) is a AWS Marketplace product of the [Friendli Container](https://friendli.ai/products/container).
+> [!NOTE]
+> This document describes AWS Marketplace product with contract-based pricing model. For more flexible, pay-as-you-go pricing scheme, [click here](https://github.com/friendliai/examples/tree/main/aws/eks-addon) to learn more.
+
+[**Friendli Container**](https://aws.amazon.com/marketplace/pp/prodview-t553kwpgovrki) is a AWS Marketplace product of the [Friendli Container](https://friendli.ai/products/container).
 
 We will walk you through setting up an EKS cluster, deploying Friendli Container, and provide the expected output for each step. By following these steps, you will have a working inference service successfully deployed on your EKS cluster.
-
-> [!NOTE]
-> Walking through this tutorial is easier with eksctl and AWS CLI tools. Please visit the [eksctl documentation](https://docs.aws.amazon.com/en_us/eks/latest/userguide/getting-started-eksctl.html) and [AWS CLI homepage](https://aws.amazon.com/cli/) for the installation guides.
 
 ## 1️⃣ Add GPU Node Group to your EKS Cluster
 
@@ -14,26 +14,16 @@ You need an active AWS EKS cluster. To create a cluster, consult [the AWS EKS do
 > [!NOTE]
 > Friendli Container EKS-addon requires Kubernetes version 1.28 or later.
 
-When selecting the AWS region for your new EKS cluster, availability of GPU instances is one of the key factors to consider. You can check instance availability [here](https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-instance-regions.html).
+When selecting the AWS region for your new EKS cluster, availability of GPU instances is one of the key factors to consider. Friendli Container supports NVIDIA H100, A100, A10G, and L4 devices. You can check instance availability [here](https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-instance-regions.html).
 
-| Supported NVIDIA Device | AWS EC2 Instance Type                                           |
-| ----------------------- | --------------------------------------------------------------- |
-| B200                    | [P6 instances](https://aws.amazon.com/ec2/instance-types/p6/)   |
-| H200                    | [P5 instances](https://aws.amazon.com/ec2/instance-types/p5/)   |
-| H100                    | [P5 instances](https://aws.amazon.com/ec2/instance-types/p5/)   |
-| A100                    | [P4 instances](https://aws.amazon.com/ec2/instance-types/p4/)   |
-| L40S                    | [G6e instances](https://aws.amazon.com/ec2/instance-types/g6e/) |
-| A10G                    | [G5 instances](https://aws.amazon.com/ec2/instance-types/g5/)   |
-| L4                      | [G6 instances](https://aws.amazon.com/ec2/instance-types/g6/)   |
+| NVIDIA Device | AWS EC2 Instance Type                                         |
+| ------------- | ------------------------------------------------------------- |
+| H100          | [p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/)  |
+| A100          | [p4d.24xlarge](https://aws.amazon.com/ec2/instance-types/p4/) |
+| A10G          | [G5 instances](https://aws.amazon.com/ec2/instance-types/g5/) |
+| L4            | [G6 instances](https://aws.amazon.com/ec2/instance-types/g6/) |
 
 If you’re going to use multi-GPU VM instance types, installing the NVIDIA GPU Operator is highly recommended for proper resource management. You can consult [the guide from NVIDIA GPU Operator](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/amazon-eks.html), and an example of installing a GPU operator using helm can be found [here](https://aws.amazon.com/blogs/containers/maximizing-gpu-utilization-with-nvidias-multi-instance-gpu-mig-on-amazon-eks-running-more-pods-per-gpu-for-enhanced-performance/).
-
-The tutorial assumes the following EKS Add-ons are installed in your cluster. You can click “Get more add-ons” button in the “AWS add-ons” section to install them.
-
-- Amazon VPC CNI
-- CoreDNS
-- kube-proxy
-- Amazon EKS Pod Identity Agent
 
 Now let’s add GPU Node Group to your EKS cluster.
 
@@ -42,9 +32,8 @@ Now let’s add GPU Node Group to your EKS cluster.
 - Configure the new node group by entering the name, Node IAM role, and other information. You can click “Create recommended role” to create IAM role. Click “Next”.
 - On the next page, select “Amazon Linux 2023 (x86\_64) Nvidia” for AMI type.
 - Select the appropriate instance type for the GPU device of your choice.
-  - Suggested instance type for this tutorial is `g6.2xlarge`.
 - Configure the disk size. It should be large enough to download the model you want to deploy.
-  - Suggested disk size for this tutorial is 100GB.
+  - To execute the example in this guide, it is recommended to set the size of the disk to 60GB.
 - Configure the desired node group size.
 - Go through the rest of the steps, review the changes and click “Create”.
 
@@ -52,26 +41,39 @@ Now let’s add GPU Node Group to your EKS cluster.
 
 - Open [Amazon EKS console](https://console.aws.amazon.com/eks/home#/clusters) and choose the cluster that you want to configure.
 - Select the “Add-ons” tab and click “Get more add-ons”.
-- Scroll down and under the section “AWS Marketplace add-ons”, search and check “Friendli Container”, and click “Next”.
+- Scroll down and under the section “AWS Marketplace add-ons”, search and check “Friendli Container (Contract-based pricing)”, and click “Next”.
+- Now you’ll need an active subscription to Friendli Container. The number of license units you need to purchase is determined by the number of GPU devices you want to use for running Friendli Container.
 - Click “Next”, Review your settings, and click “Create”
 
 > [!NOTE]
-> - For the details of the pricing, check [Friendli Container on AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-ubylhkhrotpli).
+> - For the details of the pricing, check [Friendli Container on AWS Marketplace](https://aws.amazon.com/marketplace/pp/prodview-t553kwpgovrki).
 > - For trials, custom offers, and inquiries, please visit [here](https://friendli.ai/contact) for contacts.
 
-Now you need to allow the Kubernetes ServiceAccount to contact AWS Marketplace for license validation. Execute the following commands, replacing `<REGION>` with the AWS region you created the cluster and `<NAME>` with the EKS cluster name.
+Now you need to allow Kubernetes ServiceAccounts to contact AWS License Manager, so that your Friendli Inference Deployments can be activated properly.
 
-```sh
-eksctl utils associate-iam-oidc-provider --region <REGION> --cluster <CLUSTER> --approve
+> [!NOTE]
+> Before you continue, please make sure “Amazon EKS Pod Identity Agent” EKS add-on is installed in your cluster. You can click “Get more add-ons” and enable “Amazon EKS Pod Identity Agent” under the “AWS add-ons” section.
 
-eksctl create iamserviceaccount --region <REGION> --cluster <CLUSTER> \
-  --namespace default --name default \
-  --role-name AWSMarketplaceMeteringAccessForFriendliContainer \
-  --attach-policy-arn arn:aws:iam::aws:policy/AWSMarketplaceMeteringFullAccess \
-  --approve --override-existing-serviceaccounts
-```
+- Open [Amazon EKS console](https://console.aws.amazon.com/eks/home#/clusters) and choose the cluster that you want to configure.
+- Select the “Access” tab.
+- Under the “Pod Identity associations” section, click “Create”.
 
-The commands above configure IAM roles for service accounts (IRSA) for the Kubernetes ServiceAccount `default` in the `default` namespace to exercise AWSMarketplaceMeteringFullAccess policy on your behalf. [Click here](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) to learn more about IRSA.
+“Create Pod Identity association” page will appear. Now let’s configure the IAM role, Kubernetes namespace, and Kubernetes service account.
+
+- IAM Role
+  - Click “Create recommended role”.
+  - In step 1 (Select trusted entity), “EKS - Pod Identity” should be selected for the use case. Leave it as is and click “Next”.
+  - In step 2 (Add permissions), search for “AWSLicenseManagerConsumptionPolicy” and enable it. Click “Next”.
+  - In step 3 (Name, review, and create), give the appropriate Role name and click “Create”.
+  - Go back to the “Create Pod Identity association” page and select the IAM role you just created.
+- Kubernetes namespace.
+  - This is the Kubernetes namespace where you want to create Friendli Inference Deployments. When in doubt, you can use “default”.
+  - Later on, if you are going to create Friendli Inference Deployments in another namespace, you should create the Pod Identity association for that namespace.
+- Kubernetes service account.
+  - For most cases, this should be “default”.
+  - Later on, if you are going to configure Friendli Inference Deployments to use custom service accounts, you should create the Pod Identity association for that service account.
+
+Click “Create”, then under the “Pod Identity associations” section, you should be able to see the association you just created.
 
 ## 3️⃣ Create Friendli Deployment
 
@@ -110,7 +112,7 @@ spec:
 
     nodeSelector:
       # Use the name of the node group you want to use.
-      eks.amazonaws.com/nodegroup: <NODE GROUP NAME>
+      eks.amazonaws.com/nodegroup: gpu-l4
 
     numGPUs: 1
     requests:
@@ -133,7 +135,7 @@ spec:
 You can modify this YAML file for your use case.
 
 - The “token:” section under spec.model.huggingFace refers to the Kubernetes secret you created for storing the HuggingFace access token. If accessing your model does not require an access token, you can omit the “token:” section entirely.
-- In the example above, the node selector is `eks.amazonaws.com/nodegroup: <NODE GROUP NAME>`. Replace the node selector key to match the name of your node group.
+- In the example above, nodeSelector is “eks.amazonaws.com/nodegroup: gpu-l4”. This assumes that the name of the GPU node group is “gpu-l4”. You need to edit the node selector to match the name of your node group.
 - CPU and memory resource requirements are adjusted to g6.2xlarge instance and you may need to edit those values if you used different instance type.
 
 > [!NOTE]
@@ -144,8 +146,7 @@ You can modify this YAML file for your use case.
 ```yaml
   resources:
     nodeSelector:
-      # Use the name of the node group you want to use.
-      eks.amazonaws.com/nodegroup: <NODE GROUP NAME>
+      eks.amazonaws.com/nodegroup: gpu-l4
     requests:
       cpu: "6"
       ephemeral-storage: 30Gi
