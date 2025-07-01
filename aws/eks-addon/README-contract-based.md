@@ -1,4 +1,4 @@
-# Deploy Friendli Container as AWS EKS Add-on
+# Deploy Friendli Container as Amazon EKS Add-on
 
 > [!NOTE]
 > This document describes AWS Marketplace product with contract-based pricing model. For more flexible, pay-as-you-go pricing scheme, [click here](https://github.com/friendliai/examples/tree/main/aws/eks-addon) to learn more.
@@ -9,7 +9,7 @@ We will walk you through setting up an EKS cluster, deploying Friendli Container
 
 ## 1️⃣ Add GPU Node Group to your EKS Cluster
 
-You need an active AWS EKS cluster. To create a cluster, consult [the AWS EKS documentation on creating EKS cluster](https://docs.aws.amazon.com/en_us/eks/latest/userguide/create-cluster-auto.html).
+You need an active Amazon EKS cluster. To create a cluster, consult [the Amazon EKS documentation on creating an EKS cluster](https://docs.aws.amazon.com/en_us/eks/latest/userguide/create-cluster-auto.html).
 
 > [!NOTE]
 > Friendli Container EKS-addon requires Kubernetes version 1.28 or later.
