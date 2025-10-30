@@ -32,7 +32,7 @@ Open ["Create policy" page](https://us-east-1.console.aws.amazon.com/iam/home#/p
             "Sid": "MountpointFullObjectAccess",
             "Effect": "Allow",
             "Action": [
-                "s3:GetObject",
+                "s3:GetObject"
             ],
             "Resource": [
                 "arn:aws:s3:::<BUCKET NAME HERE>/*"
